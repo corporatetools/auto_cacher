@@ -95,7 +95,15 @@ module AutoCacher
     end
 
     def cachers_for(table_or_klass, field = nil)
-      table_name = (table_or_klass < ActiveRecord::Base) ? table_or_klass.table_name : table_or_klass.to_s
+      table_name = \
+        if table_or_klass.is_a?(Class) && table_or_klass < ActiveRecord::Base
+          table_or_klass.table_name
+        elsif table_or_klass.is_a?(String) || table_or_klass.is_a?(Symbol)
+          table_or_klass.to_s
+        else
+          raise ArgumentError, "Invalid table_or_klass: #{table_or_klass.inspect}"
+        end
+      return [] if table_name.nil?
       return cachers_for_table(table_name) if field.nil?
       find_cachers_for_table_and_field(table_name, field)
     end
